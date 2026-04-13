@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(claude mcp:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh api:*)",
+      "Bash(bash:*)",
+      "Bash(flutter pub:*)",
+      "Bash(dart analyze:*)",
+      "Bash(git config:*)"
+    ]
+  }
+}
