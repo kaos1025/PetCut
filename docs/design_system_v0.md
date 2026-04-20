@@ -312,11 +312,181 @@ flutter:
 - 아래에 caption (제품명) + label (카테고리)
 
 ### 7.8 Pet Profile Card
-- bg: `PcColors.surface2`
-- radius: `PcRadius.md`
-- padding: 10 vertical · 12 horizontal
-- 좌측: brand 컬러 원형 아바타 (40x40, 이니셜, white text)
+- bg: `PcColors.surface`
+- border: 0.5 `PcColors.border`, radius `PcRadius.md`
+- padding: 10 vertical · 14 horizontal
+- 좌측: **발바닥 아이콘 아바타** (v0 친근함 우선 결정)
+  - 원형 48x48
+  - bg: `PcColors.brandTint` (#E1F5EE)
+  - 아이콘: `Icons.pets` (Material) 또는 커스텀 paw SVG, 색상 `PcColors.brand` (#1D9E75)
+  - 아이콘 size 24
+  - v2에서 multi-pet 도입 시 이니셜 텍스트 변형 검토 (섹션 8.3 참조)
 - 우측: name (body/500) + 메타 (caption, textSec: `Golden Retriever · 30 kg · 4y`)
+- 우측 끝: 편집 연필 아이콘 (`Icons.edit`, size 20, color `PcColors.textSec`)
+
+### 7.9 Save Button (Secondary + State)
+명시적 저장이 필요한 화면에서 사용. Result 스크린이 첫 사용처.
+
+**두 상태:**
+- **Idle (저장 전):**
+  - Outlined 스타일: bg `PcColors.surface`, border 0.5 `PcColors.border`, fg `PcColors.ink`
+  - radius: `PcRadius.md`
+  - padding: vertical 10, horizontal 14
+  - 높이 40 (Primary CTA 56보다 낮춰 위계 구분)
+  - Icon `Icons.bookmark_border` size 18 + label "Save scan" (PcText.body w500)
+  - icon-label gap 6
+- **Saved (저장 후):**
+  - 같은 shape, 같은 크기
+  - Icon `Icons.bookmark` size 18, color `PcColors.brand`
+  - Label "Saved" color `PcColors.brand`
+  - border color `PcColors.brand` (transition 150ms)
+  - 비활성화 (다시 탭해도 반응 없음)
+
+**Snackbar (탭 직후 1회):**
+- bg `PcColors.ink`, fg `PcColors.surface`
+- radius `PcRadius.md`
+- text: "Saved to history" (PcText.body w400, size 14로 약간 축소)
+- duration 2초
+- 위치: 화면 하단에서 16px 띄움
+- SnackBarBehavior.floating
+
+### 7.10 Unsaved Changes Dialog
+미저장 상태에서 뒤로가기 시 1회 확인.
+
+**AlertDialog 스펙:**
+- bg: `PcColors.surface`
+- radius: `PcRadius.lg` (20)
+- padding: 24 전방위
+- 타이틀: "Save this scan?" (PcText.h2, 17/500)
+- 본문: "You can review it later in Recent scans." (PcText.body, color textSec)
+- 버튼 2개 수평 정렬:
+  - Secondary (좌): "Discard" — textButton, color `PcColors.textSec`
+  - Primary (우): "Save" — FilledButton(ink bg), 높이 40
+- 버튼 간 gap: 8
+- 외부 탭으로 dismiss 가능 (barrierDismissible: true) — 아무 것도 안 함 (스크린 유지)
+
+### 7.11 Section Header
+리스트 섹션 제목용. 홈의 "Recent scans", "See all" 링크 등.
+
+**구조:**
+- Row, `MainAxisAlignment.spaceBetween`
+- 좌측: 제목 (PcText.label, UPPERCASE, color `PcColors.textSec`)
+  - 예: `RECENT SCANS`
+- 우측 (선택): 링크 (PcText.caption w500, color `PcColors.ink`)
+  - 예: `See all →`
+  - 화살표는 `Icons.chevron_right` size 14 color textSec 또는 글리프 `→`
+- padding: bottom 8 (섹션 내용과의 간격)
+
+### 7.12 Recent Scan List Item
+홈의 Recent 섹션에 쌓이는 스캔 기록 카드. DS 7.5 Card 스펙 기반 + 리스트 특화 조정.
+
+**구조:**
+- bg `PcColors.surface`
+- border 0.5 `PcColors.border`, radius `PcRadius.md`
+- padding: vertical 10, horizontal 14
+- InkWell 감싸기 (전체 영역 탭 → 해당 Result 다시 열기)
+- Row 내부 3영역:
+
+**좌측 — Status dot (8x8 원형):**
+| overall_status | dot color |
+|---|---|
+| `perfect` | `PcColors.okAccent` |
+| `caution` | `PcColors.warnAccent` |
+| `warning` | `PcColors.dangerAccent` |
+
+- 세로 중앙 정렬
+- 우측 여백 `PcSpace.md` (12)
+
+**중앙 — 메인 정보 (Expanded):**
+- 상단: 제품명 요약 (PcText.body w500)
+  - 포맷: `"Product A + Product B"` (2개)
+  - 3개 이상: `"Product A + 2 more"`
+  - 단일 긴 이름은 `overflow: TextOverflow.ellipsis`, `maxLines: 1`
+- 하단 (4px 간격): 메타 (PcText.caption, color `PcColors.textSec`)
+  - 포맷: `"{relative time} · {summary}"`
+  - relative time: "Today", "Yesterday", "3d ago" (30일 이내), 그 이후는 "Jan 15"
+  - summary 예시:
+    - conflict 0, caution 0 → "All clear"
+    - conflict N, caution 0 → "N conflict(s)"
+    - conflict 0, caution M → "M caution(s)"
+    - 둘 다 있음 → "N conflict · M caution"
+
+**우측 — Chevron (Icons.chevron_right):**
+- size 18, color `PcColors.textTer`
+- "탭 가능" 시그널
+
+**리스트 배치:**
+- 아이템 간 간격: `PcSpace.sm` (8)
+- `ListView` 아닌 `Column` 권장 (3개 고정이라 스크롤 불필요, 홈 전체 스크롤은 상위 컨테이너가 담당)
+
+### 7.13 Empty State Card
+Recent 섹션이 비어있을 때 쓰는 더미 카드. DS 7.12의 모양을 **복제**해서 사용자가 "쌓이면 이렇게 보이는구나"를 학습하게 함.
+
+**구조:**
+- 7.12 Recent Scan List Item과 동일한 외형 (border, radius, padding)
+- 하지만 내용이 톤다운됨:
+  - 좌측 dot 자리: `Icons.bookmark_add_outlined` size 20, color `PcColors.textTer`
+    - (status dot 아님 — 저장할 게 없다는 의미)
+  - 중앙 상단: `"Your scans will appear here"` (PcText.body w500, color `PcColors.textSec`)
+  - 중앙 하단: `"Tap Scan Labels above to start"` (PcText.caption, color `PcColors.textTer`)
+  - 우측 chevron 없음 (탭 불가)
+- InkWell 없음 (탭 불가)
+
+**사용 조건:**
+- `scanHistory.isEmpty` 일 때만 렌더
+- 첫 스캔 저장 후에는 자동으로 실제 Recent 카드들로 대체됨
+
+### 7.14 Full-screen Loading State
+Analysis Loading 같이 화면 전체가 대기 상태일 때.
+
+**구조:**
+- 전체 화면 세로 중앙 정렬 (Column `mainAxisAlignment: center`, `crossAxisAlignment: center`)
+- bg: `PcColors.surface` (앱 배경 그대로)
+- 내부 3단:
+  - CircularProgressIndicator
+    - color: `PcColors.brand` (기본 primary 컬러가 tenant에 따라 달라질 수 있으므로 명시)
+    - strokeWidth: 3 (기본 4는 두꺼움)
+    - size: 40×40 (Container로 감싸 강제)
+  - SizedBox height `PcSpace.xl` (24)
+  - 메인 메시지 (PcText.h2, color `PcColors.ink`)
+    - 예: "Analyzing..."
+  - SizedBox height `PcSpace.sm` (8)
+  - 서브 메시지 (PcText.body, color `PcColors.textSec`, textAlign center)
+    - 예: "Checking food + supplement combos"
+- 좌우 패딩: `PcSpace.xl` (24)
+
+### 7.15 Full-screen Error State
+네트워크 에러, 분석 실패 등 전체 화면 에러 시. Analysis Loading의 실패 경로 첫 사용처.
+
+**구조:**
+- 전체 화면 세로 중앙 정렬, 좌우 패딩 `PcSpace.xxl` (32)
+- 내부 5단:
+  - Icon
+    - size 48 (DS 내 최대. 아이콘이 크면 거슬림, 48이 균형점)
+    - color `PcColors.textTer` (톤다운, 공포 유발 X)
+    - 기본: `Icons.wifi_off` (네트워크 에러)
+    - 일반 에러: `Icons.error_outline`
+  - SizedBox height `PcSpace.lg` (16)
+  - 메인 메시지 (PcText.h1, color `PcColors.ink`, textAlign center)
+    - 네트워크: "Connection error"
+    - 일반: "Analysis failed"
+  - SizedBox height `PcSpace.sm` (8)
+  - 서브 메시지 (PcText.body, color `PcColors.textSec`, textAlign center, maxLines 3)
+    - 네트워크: "Check your internet connection and try again."
+    - 일반: "Something went wrong. Please try again."
+  - SizedBox height `PcSpace.xl` (24)
+  - 버튼 그룹 (Row, `mainAxisAlignment: center`):
+    - Primary: "Try again" (DS 7.1 Primary CTA 축소형, 높이 48, 좌우 padding 24)
+      - onPressed: **같은 화면 내 재시도** (Home으로 pop 금지)
+    - SizedBox width `PcSpace.md` (12)
+    - Secondary: "Back" (DS 7.2 Secondary, 높이 48)
+      - onPressed: Home으로 pop
+
+**톤 원칙:**
+- 빨간색 사용 금지 (에러지만 사용자 탓 아님, 위협 톤 회피)
+- 이모지 금지 ("😭", "⚠️" 같은 장식 안 씀)
+- 기술 용어 금지 ("SocketException", "HTTP 503" 등)
+- 재시도가 앞, 포기가 뒤 (사용자 성공 경로 우선)
 
 ---
 
@@ -328,6 +498,7 @@ flutter:
 - Pretendard: 한영 혼용 시각 일관성 + SuppleCut 플랫폼 통일
 - 두 weight (400/500)만: 시스템 UI와 충돌 회피, 시각 노이즈 최소화
 - Suggestion을 Blue로 분리: 경고 ≠ 해결책, 액션 스캔 가능성 향상
+- **Pet avatar: 발바닥 아이콘 채택** (04/20) — 이니셜 대안 대비 반려동물 도메인 친근함 승리. v0 single-pet 전제에선 개성 구분 불필요. Multi-pet 도입 시점(v2)에 재검토.
 
 ### 8.2 v2로 디퍼
 - **Dark mode** — 4050 타겟은 라이트 선호, 접근성 체크 오버헤드 큼
@@ -340,6 +511,7 @@ flutter:
 - 펫 종별 아이콘 세트 (dog/cat/rabbit/bird 등) — Sprint 2 시점
 - 다크 제품 사진이 흰 bg에서 눈에 띄게 하는 이미지 처리 전략
 - Loading 화면의 애니메이션 (currently 미정)
+- **Multi-pet 시나리오의 아바타 구분 전략** — v2에서 펫 2마리 이상 지원 시, 발바닥 아이콘 유지(+이름 글자로 구분)할지, 이니셜 전환할지, 펫 사진 업로드 도입할지 재검토
 
 ---
 
@@ -387,3 +559,7 @@ analysis_result_screen.dart를 design_system_v0.md의 7.3 Nutrient Progress Bar,
 ## Changelog
 
 - **v0 · 2026-04-20** — 첫 공식 락인. Brand Sage, Pretendard, 4pt grid, 3+1 semantic. Dark mode v2 디퍼.
+- **v0.1 · 2026-04-20** — Pet Profile Card 아바타를 이니셜 텍스트 → 발바닥 아이콘(`Icons.pets` + brandTint bg)으로 변경. 반려동물 도메인 친근함 우선. Multi-pet 전략은 v2로 디퍼.
+- **v0.2 · 2026-04-20** — Save Button (7.9) + Unsaved Changes Dialog (7.10) 추가. Scan history 명시적 저장 패턴 정립. Result 스크린이 첫 사용처.
+- **v0.3 · 2026-04-20** — Section Header (7.11), Recent Scan List Item (7.12), Empty State Card (7.13) 추가. 홈 Recent 섹션 + 첫 방문 학습 경로 정립. "See all" 링크는 Sprint 2 전체 History 스크린 대기.
+- **v0.4 · 2026-04-20** — Full-screen Loading (7.14), Full-screen Error (7.15) 추가. Analysis Loading의 에러 UI 정식 스펙화 + 톤 원칙 (위협 X, 기술 용어 X, 재시도 우선) 명시.
