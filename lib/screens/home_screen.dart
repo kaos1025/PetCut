@@ -4,6 +4,7 @@ import '../core/service_locator.dart';
 import '../models/pet_profile.dart';
 import '../services/pet_profile_service.dart';
 import 'pet_profile_screen.dart';
+import 'scan_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,10 +22,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadActiveProfile();
   }
 
-  void _loadActiveProfile() {
-    setState(() {
-      _activeProfile = getIt<PetProfileService>().getActiveProfile();
-    });
+  Future<void> _loadActiveProfile() async {
+    final profile = await getIt<PetProfileService>().getActiveProfile();
+    if (mounted) setState(() => _activeProfile = profile);
   }
 
   Future<void> _openProfileScreen({PetProfile? existing}) async {
@@ -106,8 +106,9 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 56,
             child: FilledButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Coming in Sprint 1')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScanScreen()),
                 );
               },
               icon: const Icon(Icons.camera_alt, size: 24),

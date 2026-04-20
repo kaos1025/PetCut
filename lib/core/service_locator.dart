@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/gemini_analysis_service.dart';
 import '../services/pet_profile_service.dart';
@@ -7,8 +6,13 @@ import '../services/pet_profile_service.dart';
 final getIt = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
-  final prefs = await SharedPreferences.getInstance();
+  // Hot restart 지원을 위해 기존 등록된 서비스 초기화
+  await getIt.reset();
 
-  getIt.registerSingleton<PetProfileService>(PetProfileService(prefs));
-  getIt.registerSingleton<GeminiAnalysisService>(GeminiAnalysisService());
+  getIt.registerLazySingleton<GeminiAnalysisService>(
+    () => GeminiAnalysisService(),
+  );
+  getIt.registerLazySingleton<PetProfileService>(
+    () => PetProfileService(),
+  );
 }

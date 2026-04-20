@@ -59,18 +59,38 @@ class ToxicityThresholds {
 
   // ── 기전 충돌 성분 그룹 ──
   static const List<String> anticoagulants = [
-    'fish oil', 'omega-3', 'omega 3', 'ginkgo', 'ginseng',
-    'turmeric', 'curcumin', 'vitamin e', 'garlic',
+    'fish oil',
+    'omega-3',
+    'omega 3',
+    'ginkgo',
+    'ginseng',
+    'turmeric',
+    'curcumin',
+    'vitamin e',
+    'garlic',
   ];
   static const List<String> thyroidDisruptors = [
-    'kelp', 'seaweed', 'iodine', 'bladderwrack',
+    'kelp',
+    'seaweed',
+    'iodine',
+    'bladderwrack',
   ];
   static const List<String> hemolytic = [
-    'garlic', 'garlic powder', 'onion', 'onion powder', 'chives', 'leek',
+    'garlic',
+    'garlic powder',
+    'onion',
+    'onion powder',
+    'chives',
+    'leek',
   ];
   static const List<String> hepatotoxicHerbs = [
-    'comfrey', 'pennyroyal', 'kava', 'germander',
-    'black cohosh', 'chaparral', 'greater celandine',
+    'comfrey',
+    'pennyroyal',
+    'kava',
+    'germander',
+    'black cohosh',
+    'chaparral',
+    'greater celandine',
   ];
 
   // ── 상태 판정 ──

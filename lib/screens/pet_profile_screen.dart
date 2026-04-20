@@ -202,8 +202,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                   selected: {_species},
                   onSelectionChanged: (s) => _onSpeciesChanged(s.first),
                   style: ButtonStyle(
-                    minimumSize:
-                        WidgetStatePropertyAll(const Size(0, 52)),
+                    minimumSize: WidgetStatePropertyAll(const Size(0, 52)),
                   ),
                 ),
               ),
@@ -239,8 +238,8 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                       decoration: const InputDecoration(
                         hintText: '0.0',
                         border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       ),
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
@@ -276,8 +275,7 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                       selected: {_weightUnit},
                       onSelectionChanged: (s) => _onWeightUnitChanged(s.first),
                       style: ButtonStyle(
-                        minimumSize:
-                            WidgetStatePropertyAll(const Size(0, 52)),
+                        minimumSize: WidgetStatePropertyAll(const Size(0, 52)),
                       ),
                     ),
                   ),

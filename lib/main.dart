@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/service_locator.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // TODO: dotenv.load, Firebase.initializeApp
+  await dotenv.load(fileName: ".env");
+  // TODO: Firebase.initializeApp
   // → Firebase 설정 파일(google-services.json) 추가 후 활성화
   await setupServiceLocator();
   runApp(const PetCutApp());

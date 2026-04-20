@@ -36,9 +36,8 @@ class PetProfile {
             LifeStageCalculator.calculate(
               species: species,
               ageYears: ageYears,
-              weightKg: weightUnit == WeightUnit.lbs
-                  ? weight * 0.453592
-                  : weight,
+              weightKg:
+                  weightUnit == WeightUnit.lbs ? weight * 0.453592 : weight,
             );
 
   double get weightKg {

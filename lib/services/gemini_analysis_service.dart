@@ -11,7 +11,7 @@ import '../prompts/gemini_prompt_pet.dart';
 // PetCut Gemini 분석 서비스 (SuppleCut GeminiAnalysisService 패턴)
 class GeminiAnalysisService {
   late final String _apiKey;
-  final String _model = 'gemini-2.0-flash';
+  final String _model = 'gemini-3.1-flash-lite-preview';
 
   GeminiAnalysisService() {
     final key = dotenv.env['GEMINI_API_KEY'] ?? dotenv.env['API_KEY'] ?? '';
@@ -22,9 +22,13 @@ class GeminiAnalysisService {
   }
 
   Future<PetcutAnalysisResult> analyzeImage(
-    Uint8List imageBytes, {
+    List<Uint8List> imageBytesList, {
     required PetProfile petProfile,
   }) async {
+    if (imageBytesList.isEmpty) {
+      throw ArgumentError('imageBytesList must not be empty');
+    }
+
     final model = GenerativeModel(
       model: _model,
       apiKey: _apiKey,
@@ -38,12 +42,12 @@ class GeminiAnalysisService {
         final userMessage =
             '${GeminiPromptPet.userPrompt}\n\n${petProfile.toPromptText()}';
 
-        final response = await model.generateContent([
-          Content.multi([
-            DataPart('image/jpeg', imageBytes),
-            TextPart(userMessage),
-          ]),
-        ]);
+        final parts = <Part>[
+          ...imageBytesList.map((bytes) => DataPart('image/jpeg', bytes)),
+          TextPart(userMessage),
+        ];
+
+        final response = await model.generateContent([Content.multi(parts)]);
 
         final text = response.text ?? '';
         if (text.isEmpty) {

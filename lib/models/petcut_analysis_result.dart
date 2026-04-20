@@ -27,11 +27,11 @@ class PetcutAnalysisResult {
   }
 
   PetcutAnalysisResult _enforceOverallStatus() {
-    final hasWarning =
-        comboAnalysis.mechanismConflicts.any((c) => c.severity == 'critical') ||
-            comboAnalysis.nutrientTotals.any((n) => n.status == 'critical') ||
-            products.any((p) =>
-                p.flaggedIngredients.any((f) => f.severity == 'critical'));
+    final hasWarning = comboAnalysis.mechanismConflicts
+            .any((c) => c.severity == 'critical') ||
+        comboAnalysis.nutrientTotals.any((n) => n.status == 'critical') ||
+        products.any(
+            (p) => p.flaggedIngredients.any((f) => f.severity == 'critical'));
 
     if (hasWarning && overallStatus != 'warning') {
       return PetcutAnalysisResult(
@@ -91,11 +91,10 @@ class PetcutProduct {
         keyNutrients: (json['key_nutrients'] as List<dynamic>? ?? [])
             .map((e) => KeyNutrient.fromJson(e as Map<String, dynamic>))
             .toList(),
-        flaggedIngredients:
-            (json['flagged_ingredients'] as List<dynamic>? ?? [])
-                .map(
-                    (e) => FlaggedIngredient.fromJson(e as Map<String, dynamic>))
-                .toList(),
+        flaggedIngredients: (json['flagged_ingredients'] as List<dynamic>? ??
+                [])
+            .map((e) => FlaggedIngredient.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -186,15 +185,14 @@ class PetcutComboAnalysis {
         nutrientTotals: (json['nutrient_totals'] as List<dynamic>? ?? [])
             .map((e) => NutrientTotal.fromJson(e as Map<String, dynamic>))
             .toList(),
-        mechanismConflicts:
-            (json['mechanism_conflicts'] as List<dynamic>? ?? [])
-                .map((e) =>
-                    MechanismConflict.fromJson(e as Map<String, dynamic>))
-                .toList(),
+        mechanismConflicts: (json['mechanism_conflicts'] as List<dynamic>? ??
+                [])
+            .map((e) => MechanismConflict.fromJson(e as Map<String, dynamic>))
+            .toList(),
         exclusionRecommendations:
             (json['exclusion_recommendations'] as List<dynamic>? ?? [])
-                .map((e) => ExclusionRecommendation.fromJson(
-                    e as Map<String, dynamic>))
+                .map((e) =>
+                    ExclusionRecommendation.fromJson(e as Map<String, dynamic>))
                 .toList(),
       );
 
@@ -305,8 +303,7 @@ class ExclusionRecommendation {
         action: json['action'] as String? ?? 'monitor',
         targetProduct: json['target_product'] as String? ?? '',
         reason: json['reason'] as String? ?? '',
-        monthlySavingsUsd:
-            (json['monthly_savings_usd'] as num?)?.toDouble(),
+        monthlySavingsUsd: (json['monthly_savings_usd'] as num?)?.toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -314,7 +311,6 @@ class ExclusionRecommendation {
         'action': action,
         'target_product': targetProduct,
         'reason': reason,
-        if (monthlySavingsUsd != null)
-          'monthly_savings_usd': monthlySavingsUsd,
+        if (monthlySavingsUsd != null) 'monthly_savings_usd': monthlySavingsUsd,
       };
 }
