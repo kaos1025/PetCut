@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'core/route_observer.dart';
 import 'core/service_locator.dart';
 import 'screens/home_screen.dart';
 import 'theme/petcut_tokens.dart';
@@ -22,6 +23,7 @@ class PetCutApp extends StatelessWidget {
     return MaterialApp(
       title: 'PetCut',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver],
       theme: ThemeData(
         fontFamily: 'Pretendard',
         scaffoldBackgroundColor: PcColors.surface,
