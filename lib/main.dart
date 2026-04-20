@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/service_locator.dart';
 import 'screens/home_screen.dart';
+import 'theme/petcut_tokens.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +23,24 @@ class PetCutApp extends StatelessWidget {
       title: 'PetCut',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF4CAF50),
+        fontFamily: 'Pretendard',
+        scaffoldBackgroundColor: PcColors.surface,
+        colorScheme: const ColorScheme.light(
+          primary: PcColors.ink,
+          secondary: PcColors.brand,
+          surface: PcColors.surface,
+          onSurface: PcColors.ink,
+          error: PcColors.dangerAccent,
+        ),
+        textTheme: const TextTheme(
+          displayLarge: PcText.display,
+          headlineLarge: PcText.h1,
+          titleMedium: PcText.h2,
+          bodyLarge: PcText.body,
+          bodyMedium: PcText.body,
+          bodySmall: PcText.caption,
+          labelSmall: PcText.label,
+        ),
         useMaterial3: true,
       ),
       home: const HomeScreen(),
