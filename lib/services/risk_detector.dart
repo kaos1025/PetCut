@@ -32,7 +32,6 @@
 // ----------------------------------------------------------------------------
 
 import '../constants/observable_warning_signs.dart';
-import '../models/pet_enums.dart';
 import '../models/pet_profile.dart';
 import '../models/petcut_analysis_result.dart';
 
