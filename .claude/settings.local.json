@@ -9,7 +9,25 @@
       "Bash(bash:*)",
       "Bash(flutter pub:*)",
       "Bash(dart analyze:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "mcp__filesystem__read_text_file",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "mcp__exa__crawling_exa",
+      "mcp__exa__web_search_exa",
+      "Bash(flutter analyze:*)",
+      "Bash(mkdir -p .claude/skills .claude/commands)",
+      "Bash(mv .agent/skills/code-review .claude/skills/)",
+      "Bash(mv .agent/skills/flutter-test .claude/skills/)",
+      "Bash(mv .agent/skills/flutter-analyze .claude/skills/)",
+      "Bash(mv .agent/skills/pre-commit .claude/skills/)",
+      "Bash(flutter devices *)",
+      "Bash(grep -E \"^\\(android|ios|web|windows|macos|linux\\)$\")",
+      "Bash(flutter emulators *)",
+      "Bash(flutter create *)",
+      "Bash(flutter clean *)",
+      "Bash(dart format *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
