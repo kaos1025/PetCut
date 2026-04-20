@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -47,7 +48,13 @@ class GeminiAnalysisService {
           TextPart(userMessage),
         ];
 
-        final response = await model.generateContent([Content.multi(parts)]);
+        final response = await model
+            .generateContent([Content.multi(parts)])
+            .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException(
+              'Gemini API timeout after 20 seconds'),
+        );
 
         final text = response.text ?? '';
         if (text.isEmpty) {
