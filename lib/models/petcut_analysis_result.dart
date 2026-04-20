@@ -212,6 +212,8 @@ class NutrientTotal {
   final List<String> sources;
   final double? percentOfLimit;
   final String status;
+  final double? safeUpperLimit;
+  final String? safeUpperLimitSource;
 
   const NutrientTotal({
     required this.nutrient,
@@ -220,6 +222,8 @@ class NutrientTotal {
     required this.sources,
     this.percentOfLimit,
     required this.status,
+    this.safeUpperLimit,
+    this.safeUpperLimitSource,
   });
 
   factory NutrientTotal.fromJson(Map<String, dynamic> json) => NutrientTotal(
@@ -232,6 +236,8 @@ class NutrientTotal {
             .toList(),
         percentOfLimit: (json['percent_of_limit'] as num?)?.toDouble(),
         status: json['status'] as String? ?? 'safe',
+        safeUpperLimit: (json['safe_upper_limit'] as num?)?.toDouble(),
+        safeUpperLimitSource: json['safe_upper_limit_source'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -241,6 +247,9 @@ class NutrientTotal {
         'sources': sources,
         if (percentOfLimit != null) 'percent_of_limit': percentOfLimit,
         'status': status,
+        if (safeUpperLimit != null) 'safe_upper_limit': safeUpperLimit,
+        if (safeUpperLimitSource != null)
+          'safe_upper_limit_source': safeUpperLimitSource,
       };
 }
 
