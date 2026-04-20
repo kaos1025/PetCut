@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../core/service_locator.dart';
 import '../models/pet_profile.dart';
 import '../models/petcut_analysis_result.dart';
+import '../models/scan_history_entry.dart';
+import '../services/scan_history_service.dart';
+import '../theme/petcut_tokens.dart';
 
 /// Gemini 분석 결과 표시 화면
-class AnalysisResultScreen extends StatelessWidget {
+class AnalysisResultScreen extends StatefulWidget {
   final PetcutAnalysisResult result;
   final PetProfile petProfile;
 
@@ -15,75 +19,247 @@ class AnalysisResultScreen extends StatelessWidget {
   });
 
   @override
+  State<AnalysisResultScreen> createState() => _AnalysisResultScreenState();
+}
+
+class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
+  bool _isSaved = false;
+
+  // TODO(sprint-2): history에서 재진입 시 원본 scanId 주입 받도록
+  // 생성자에 optional String? existingScanId 추가 예정
+  late final String _scanId = 'scan_${DateTime.now().millisecondsSinceEpoch}';
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analysis Result'),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          children: [
-            // 1. Overall Status Banner
-            _buildStatusBanner(),
-            const SizedBox(height: 16),
+    return PopScope(
+      canPop: _isSaved,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await _showUnsavedDialog();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Analysis Result'),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            children: [
+              // 1. Overall Status Banner
+              _buildStatusBanner(),
+              const SizedBox(height: 12),
 
-            // 2. Pet Profile Card
-            _buildPetProfileCard(),
-            const SizedBox(height: 16),
-
-            // 3. Products
-            if (result.products.isNotEmpty) ...[
-              _buildSectionTitle('Products'),
-              const SizedBox(height: 8),
-              ...result.products.map(_buildProductCard),
-              const SizedBox(height: 16),
-            ],
-
-            // 4. Nutrient Totals
-            if (result.comboAnalysis.nutrientTotals.isNotEmpty) ...[
-              _buildSectionTitle('Nutrient Totals'),
-              const SizedBox(height: 8),
-              ...result.comboAnalysis.nutrientTotals.map(_buildNutrientRow),
-              const SizedBox(height: 16),
-            ],
-
-            // 5. Mechanism Conflicts
-            if (result.comboAnalysis.mechanismConflicts.isNotEmpty) ...[
-              _buildSectionTitle('Mechanism Conflicts'),
-              const SizedBox(height: 8),
-              ...result.comboAnalysis.mechanismConflicts
-                  .map(_buildConflictCard),
-              const SizedBox(height: 16),
-            ],
-
-            // 6. Exclusion Recommendations
-            if (result.comboAnalysis.exclusionRecommendations.isNotEmpty) ...[
-              _buildSectionTitle('Recommendations'),
-              const SizedBox(height: 8),
-              ...result.comboAnalysis.exclusionRecommendations
-                  .map(_buildExclusionCard),
-              const SizedBox(height: 16),
-            ],
-
-            // 7. Disclaimer
-            const SizedBox(height: 8),
-            Text(
-              'Not a substitute for professional veterinary advice.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade500,
-                fontStyle: FontStyle.italic,
+              // 1.5 Save scan button (DS §7.9)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: _buildSaveButton(),
               ),
+              const SizedBox(height: 16),
+
+              // 2. Pet Profile Card
+              _buildPetProfileCard(),
+              const SizedBox(height: 16),
+
+              // 3. Products
+              if (widget.result.products.isNotEmpty) ...[
+                _buildSectionTitle('Products'),
+                const SizedBox(height: 8),
+                ...widget.result.products.map(_buildProductCard),
+                const SizedBox(height: 16),
+              ],
+
+              // 4. Nutrient Totals
+              if (widget.result.comboAnalysis.nutrientTotals.isNotEmpty) ...[
+                _buildSectionTitle('Nutrient Totals'),
+                const SizedBox(height: 8),
+                ...widget.result.comboAnalysis.nutrientTotals
+                    .map(_buildNutrientRow),
+                const SizedBox(height: 16),
+              ],
+
+              // 5. Mechanism Conflicts
+              if (widget
+                  .result.comboAnalysis.mechanismConflicts.isNotEmpty) ...[
+                _buildSectionTitle('Mechanism Conflicts'),
+                const SizedBox(height: 8),
+                ...widget.result.comboAnalysis.mechanismConflicts
+                    .map(_buildConflictCard),
+                const SizedBox(height: 16),
+              ],
+
+              // 6. Exclusion Recommendations
+              if (widget.result.comboAnalysis.exclusionRecommendations
+                  .isNotEmpty) ...[
+                _buildSectionTitle('Recommendations'),
+                const SizedBox(height: 8),
+                ...widget.result.comboAnalysis.exclusionRecommendations
+                    .map(_buildExclusionCard),
+                const SizedBox(height: 16),
+              ],
+
+              // 7. Disclaimer
+              const SizedBox(height: 8),
+              Text(
+                'Not a substitute for professional veterinary advice.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade500,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // === Save flow (DS §7.9 / §7.10) ==========================================
+
+  Widget _buildSaveButton() {
+    final active = !_isSaved;
+    return SizedBox(
+      height: 40,
+      child: OutlinedButton(
+        onPressed: active ? () => _saveScan() : null,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: PcColors.surface,
+          foregroundColor: active ? PcColors.ink : PcColors.brand,
+          disabledForegroundColor: PcColors.brand,
+          disabledBackgroundColor: PcColors.surface,
+          side: BorderSide(
+            color: active ? PcColors.border : PcColors.brand,
+            width: 0.5,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(PcRadius.md),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          animationDuration: const Duration(milliseconds: 150),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(active ? Icons.bookmark_border : Icons.bookmark, size: 18),
+            const SizedBox(width: 6),
+            Text(
+              active ? 'Save scan' : 'Saved',
+              style: PcText.body.copyWith(fontWeight: FontWeight.w500),
             ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
+
+  Future<void> _saveScan({bool showSnackbar = true}) async {
+    // cautionCount = nutrient(status==caution) + flagged_ingredient(severity==caution).
+    // mechanism conflicts는 severity 상관없이 전부 conflictCount로 분류 (UX 판단).
+    final entry = ScanHistoryEntry(
+      id: _scanId,
+      scannedAt: DateTime.now(),
+      productNames:
+          widget.result.products.map((p) => p.productName).toList(),
+      overallStatus: widget.result.overallStatus,
+      conflictCount: widget.result.comboAnalysis.mechanismConflicts.length,
+      cautionCount: _computeCautionCount(),
+      petId: widget.petProfile.id,
+    );
+
+    await getIt<ScanHistoryService>().add(entry);
+    if (!mounted) return;
+    setState(() => _isSaved = true);
+
+    if (!showSnackbar) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Saved to history',
+          style: PcText.body.copyWith(
+            color: PcColors.surface,
+            fontSize: 14,
+          ),
+        ),
+        backgroundColor: PcColors.ink,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PcRadius.md),
+        ),
+        margin: const EdgeInsets.all(PcSpace.lg),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  int _computeCautionCount() {
+    final n = widget.result.comboAnalysis.nutrientTotals
+        .where((x) => x.status == 'caution')
+        .length;
+    final f = widget.result.products
+        .expand((p) => p.flaggedIngredients)
+        .where((x) => x.severity == 'caution')
+        .length;
+    return n + f;
+  }
+
+  Future<void> _showUnsavedDialog() async {
+    final screenNavigator = Navigator.of(context);
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: PcColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PcRadius.lg),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        title: const Text('Save this scan?', style: PcText.h2),
+        content: Text(
+          'You can review it later in Recent scans.',
+          style: PcText.body.copyWith(color: PcColors.textSec),
+        ),
+        actionsAlignment: MainAxisAlignment.end,
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: PcColors.textSec),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              screenNavigator.pop();
+            },
+            child: const Text('Discard'),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            height: 40,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: PcColors.ink,
+                foregroundColor: PcColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(PcRadius.md),
+                ),
+              ),
+              onPressed: () async {
+                await _saveScan(showSnackbar: false);
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
+                screenNavigator.pop();
+              },
+              child: const Text('Save'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // === Existing renderers (로직/스타일 불변, widget.* 접두어만 추가) ========
 
   // --- 1. Overall Status Banner ---
   Widget _buildStatusBanner() {
@@ -93,7 +269,7 @@ class AnalysisResultScreen extends StatelessWidget {
     final IconData icon;
     final String label;
 
-    switch (result.overallStatus) {
+    switch (widget.result.overallStatus) {
       case 'perfect':
         bgColor = Colors.green.shade50;
         borderColor = Colors.green.shade400;
@@ -139,10 +315,10 @@ class AnalysisResultScreen extends StatelessWidget {
               ),
             ],
           ),
-          if (result.overallSummary.isNotEmpty) ...[
+          if (widget.result.overallSummary.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              result.overallSummary,
+              widget.result.overallSummary,
               style: const TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
@@ -155,9 +331,9 @@ class AnalysisResultScreen extends StatelessWidget {
   // --- 2. Pet Profile Card ---
   Widget _buildPetProfileCard() {
     final weightText =
-        '${petProfile.weight.toStringAsFixed(1)} ${petProfile.weightUnit.displayName}';
-    final ageText = petProfile.ageYears != null
-        ? '${petProfile.ageYears!.toStringAsFixed(1)} yrs'
+        '${widget.petProfile.weight.toStringAsFixed(1)} ${widget.petProfile.weightUnit.displayName}';
+    final ageText = widget.petProfile.ageYears != null
+        ? '${widget.petProfile.ageYears!.toStringAsFixed(1)} yrs'
         : 'Age unknown';
 
     return Card(
@@ -175,7 +351,7 @@ class AnalysisResultScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                '${petProfile.name} · $weightText · $ageText · ${petProfile.lifeStage.displayName}',
+                '${widget.petProfile.name} · $weightText · $ageText · ${widget.petProfile.lifeStage.displayName}',
                 style: const TextStyle(fontSize: 16),
               ),
             ),
