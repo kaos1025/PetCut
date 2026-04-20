@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 
 import '../services/gemini_analysis_service.dart';
 import '../services/pet_profile_service.dart';
+import '../services/scan_history_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -14,5 +15,8 @@ Future<void> setupServiceLocator() async {
   );
   getIt.registerLazySingleton<PetProfileService>(
     () => PetProfileService(),
+  );
+  getIt.registerLazySingleton<ScanHistoryService>(
+    () => ScanHistoryService(),
   );
 }
