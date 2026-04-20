@@ -73,7 +73,7 @@ class _ScanScreenState extends State<ScanScreen> {
       return;
     }
 
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => AnalysisLoadingScreen(
