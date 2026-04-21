@@ -455,9 +455,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
 
   String _formatRelativeTime(DateTime when) {
     final now = DateTime.now();
-    final sameDay = now.year == when.year &&
-        now.month == when.month &&
-        now.day == when.day;
+    final sameDay =
+        now.year == when.year && now.month == when.month && now.day == when.day;
     if (sameDay) return 'Today';
 
     final yesterday = now.subtract(const Duration(days: 1));
@@ -470,8 +469,18 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     if (diff.inDays < 30) return '${diff.inDays}d ago';
 
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[when.month - 1]} ${when.day}';
   }

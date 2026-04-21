@@ -33,7 +33,8 @@ void main() {
         expect(keys, allKeys);
       });
 
-      test('(b) byKey returns entry for each registered key and null for unknown',
+      test(
+          '(b) byKey returns entry for each registered key and null for unknown',
           () {
         for (final key in allKeys) {
           final entry = ObservableWarningSigns.byKey(key);
@@ -135,8 +136,7 @@ void main() {
         }
       });
 
-      test(
-          '(h) escalatedTier: d3 + garlic non-null; iron/xylitol/calcium null',
+      test('(h) escalatedTier: d3 + garlic non-null; iron/xylitol/calcium null',
           () {
         expect(
           ObservableWarningSigns.byKey('d3_excess')!.escalatedTier,
@@ -155,8 +155,7 @@ void main() {
           isNull,
         );
         expect(
-          ObservableWarningSigns
-              .byKey('calcium_excess_large_breed_puppy')!
+          ObservableWarningSigns.byKey('calcium_excess_large_breed_puppy')!
               .escalatedTier,
           isNull,
         );

@@ -160,18 +160,15 @@ class Section5InputBuilder {
     final overallStatus = geminiResult.overallStatus;
     final mechanisms = geminiResult.comboAnalysis.mechanismConflicts;
     final nutrients = geminiResult.comboAnalysis.nutrientTotals;
-    final allFlags = geminiResult.products
-        .expand((p) => p.flaggedIngredients)
-        .toList();
+    final allFlags =
+        geminiResult.products.expand((p) => p.flaggedIngredients).toList();
 
     // Rule 1: Urgent
     if (overallStatus == 'warning') {
       final hasCriticalMechanism =
           mechanisms.any((m) => m.severity == 'critical');
-      final hasCriticalFlag =
-          allFlags.any((f) => f.severity == 'critical');
-      final hasCriticalNutrient =
-          nutrients.any((n) => n.status == 'critical');
+      final hasCriticalFlag = allFlags.any((f) => f.severity == 'critical');
+      final hasCriticalNutrient = nutrients.any((n) => n.status == 'critical');
 
       if (hasCriticalMechanism || hasCriticalFlag || hasCriticalNutrient) {
         return _tierUrgent;
@@ -204,9 +201,8 @@ class Section5InputBuilder {
           'Mechanism conflict: ${mechanism.conflictType} (${mechanism.severity})');
     }
 
-    final allFlags = geminiResult.products
-        .expand((p) => p.flaggedIngredients)
-        .toList();
+    final allFlags =
+        geminiResult.products.expand((p) => p.flaggedIngredients).toList();
 
     final lifeStageFlags =
         allFlags.where((f) => f.reason == 'life_stage_mismatch');
@@ -237,8 +233,7 @@ class Section5InputBuilder {
   /// Converts a Gemini ExclusionRecommendation into a structured action card.
   static Map<String, dynamic> _exclusionToAction(
       ExclusionRecommendation exclusion) {
-    final actionVerb =
-        _actionVerbMap[exclusion.action] ?? _actionVerbFallback;
+    final actionVerb = _actionVerbMap[exclusion.action] ?? _actionVerbFallback;
 
     String? monthlyCostNote;
     if (exclusion.monthlySavingsUsd != null) {

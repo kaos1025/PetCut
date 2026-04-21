@@ -284,8 +284,7 @@ void main() {
       expect(keys.length, 1);
     });
 
-    test(
-        '(o-3) dedup: iron from nutrient_totals + flagged -> single entry',
+    test('(o-3) dedup: iron from nutrient_totals + flagged -> single entry',
         () {
       final result = _buildResult(
         nutrientTotals: [_nutrient('iron', 'warning')],

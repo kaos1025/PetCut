@@ -161,8 +161,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
     final entry = ScanHistoryEntry(
       id: _scanId,
       scannedAt: DateTime.now(),
-      productNames:
-          widget.result.products.map((p) => p.productName).toList(),
+      productNames: widget.result.products.map((p) => p.productName).toList(),
       overallStatus: widget.result.overallStatus,
       conflictCount: widget.result.comboAnalysis.mechanismConflicts.length,
       cautionCount: _computeCautionCount(),
