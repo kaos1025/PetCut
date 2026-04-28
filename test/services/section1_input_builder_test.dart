@@ -110,20 +110,14 @@ void main() {
       expect((result['pet'] as Map)['weight_display'], '30 kg (66 lbs)');
     });
 
-    test('(e) 66 lbs user -> "66 lbs (29.9 kg)" (current roundtrip loss)', () {
-      // PetProfile auto-converts lbs -> kg internally using the 0.453592
-      // factor: weightKg == 66 * 0.453592 == 29.937072, which the Builder
-      // then rounds to 1 decimal for display (29.9).
-      //
-      // As a result, a whole-number lbs input surfaces in the display with
-      // a .9 kg companion rather than an integer kg. Preserving integer
-      // kg for whole-number lbs inputs is planned as a separate follow-up
-      // commit: `fix(sprint2): preserve integer precision in weight_display`.
+    test('(e) lbs-origin whole-number preserves integer kg conversion', () {
+      // Origin-unit direct branching: lbs input bypasses the weightKg getter
+      // so 66 lbs converts and rounds to an integer 30 kg in the display.
       final result = Section1InputBuilder.build(
         geminiResult: _result(),
         pet: _pet(weight: 66.0, weightUnit: WeightUnit.lbs),
       );
-      expect((result['pet'] as Map)['weight_display'], '66 lbs (29.9 kg)');
+      expect((result['pet'] as Map)['weight_display'], '66 lbs (30 kg)');
     });
 
     test('(f) fractional kg weight formats with single decimal', () {
@@ -132,6 +126,30 @@ void main() {
         pet: _pet(weight: 4.5, weightUnit: WeightUnit.kg),
       );
       expect((result['pet'] as Map)['weight_display'], '4.5 kg (10 lbs)');
+    });
+
+    test('(g) 8 lbs small cat -> "8 lbs (4 kg)"', () {
+      final result = Section1InputBuilder.build(
+        geminiResult: _result(),
+        pet: _pet(weight: 8.0, weightUnit: WeightUnit.lbs),
+      );
+      expect((result['pet'] as Map)['weight_display'], '8 lbs (4 kg)');
+    });
+
+    test('(h) 25 kg large breed boundary -> "25 kg (55 lbs)"', () {
+      final result = Section1InputBuilder.build(
+        geminiResult: _result(),
+        pet: _pet(weight: 25.0, weightUnit: WeightUnit.kg),
+      );
+      expect((result['pet'] as Map)['weight_display'], '25 kg (55 lbs)');
+    });
+
+    test('(i) 5.5 lbs decimal lbs origin -> "5.5 lbs (2 kg)"', () {
+      final result = Section1InputBuilder.build(
+        geminiResult: _result(),
+        pet: _pet(weight: 5.5, weightUnit: WeightUnit.lbs),
+      );
+      expect((result['pet'] as Map)['weight_display'], '5.5 lbs (2 kg)');
     });
   });
 

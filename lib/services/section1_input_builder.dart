@@ -137,31 +137,28 @@ class Section1InputBuilder {
   // --------------------------------------------------------------------------
 
   /// Formats weight as "X kg (Y lbs)" or "Y lbs (X kg)" based on user's
-  /// original unit. Rounds to 1 decimal for kg and nearest integer for lbs.
+  /// original unit. Origin unit preserves user input precision; converted
+  /// unit rounds to the nearest integer.
+  ///
+  /// Branches on origin unit (pet.weight + pet.weightUnit) rather than the
+  /// pet.weightKg getter to avoid double conversion, which previously turned
+  /// whole-number lbs inputs (e.g. 66 lbs) into ".9 kg" displays.
   static String _formatWeightDisplay(PetProfile pet) {
-    final kg = pet.weightKg;
-    final lbs = kg * 2.20462;
-
-    final kgRounded = _roundTo1Decimal(kg);
-    final lbsRounded = lbs.round();
-
     if (pet.weightUnit == WeightUnit.lbs) {
-      return '$lbsRounded lbs (${_formatKg(kgRounded)} kg)';
+      final kgConverted = pet.weight * 0.453592;
+      return '${_formatOrigin(pet.weight)} lbs (${kgConverted.round()} kg)';
     } else {
-      return '${_formatKg(kgRounded)} kg ($lbsRounded lbs)';
+      final lbsConverted = pet.weight * 2.20462;
+      return '${_formatOrigin(pet.weight)} kg (${lbsConverted.round()} lbs)';
     }
   }
 
-  /// Formats kg value removing trailing .0 (e.g. "30" instead of "30.0").
-  static String _formatKg(double kg) {
-    if (kg == kg.roundToDouble()) {
-      return kg.toInt().toString();
+  /// Formats origin weight value: integer when whole-number, else 1 decimal.
+  static String _formatOrigin(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
     }
-    return kg.toStringAsFixed(1);
-  }
-
-  static double _roundTo1Decimal(double value) {
-    return (value * 10).roundToDouble() / 10;
+    return value.toStringAsFixed(1);
   }
 
   // --------------------------------------------------------------------------
