@@ -1,0 +1,141 @@
+{
+  "report_version": "v1",
+  "sections": [
+    {
+      "section": "pet_risk_profile",
+      "title": "Pet Risk Profile",
+      "pet_summary_line": "Buddy — Adult Doberman Pinscher, 30 kg (66 lbs). 2 products analyzed.",
+      "body": "This report is tailored specifically to Buddy, your adult Doberman Pinscher weighing 30 kg (66 lbs). Pet nutrition tolerance scales with body weight, species, and life stage — so every calculation in this report uses Buddy's specific profile rather than generic averages. The scan covered 1 food and 1 supplement, totaling 2 products analyzed for ingredient combinations and nutrient load.",
+      "sensitivity_notes": [
+        {
+          "flag_key": "copper_sensitive_breed",
+          "display_label": "Copper-sensitive breed",
+          "note": "Dobermans are predisposed to copper accumulation in the liver, meaning the safe dietary copper limit for this breed is stricter than general dog guidelines. Because Doberman livers clear copper less efficiently, even moderate long-term intake can become a concern over years."
+        }
+      ],
+      "transition": "The next section breaks down exactly how much of each key nutrient Buddy is getting daily — calculated against his specific body weight, species, and breed-level considerations."
+    },
+    {
+      "section": "combo_load_report",
+      "title": "Combo Load Report",
+      "intro": "This section breaks down exactly how much of each key nutrient Buddy is getting daily from this food and supplement combo. Because pet nutrition tolerance scales with body weight, we calculate intake relative to Buddy's 30kg frame.",
+      "headline": {
+        "statement": "Vitamin D3 is elevated for Buddy's size.",
+        "detail": "It does not cross a critical threshold, but stacking food + supplement brings totals up. Calcium and zinc are within safe ranges."
+      },
+      "nutrient_cards": [
+        {
+          "nutrient": "vitamin_d3",
+          "display_name": "Vitamin D3",
+          "status_badge": "caution",
+          "headline_number": {
+            "primary": "16.7% of limit",
+            "secondary": "33.4 IU/kg BW/day (limit: 200)"
+          },
+          "source_line": "From food: 502.8 IU (50%) + supplement: 500 IU (50%)",
+          "body": "Vitamin D3 regulates calcium absorption, and excess D3 is the most common supplement-related toxicity in dogs. Buddy's daily intake splits almost evenly between food and supplement — neither is high alone, but stacking brings the total up.",
+          "limit_source_note": "Based on NRC 2006 chronic intake threshold."
+        }
+      ],
+      "safe_nutrients_summary": "Calcium and zinc levels are within ideal ranges for an adult 30kg dog.",
+      "closing": "The next section explains why specific ingredients in this combo interact — not just how much is present, but how they affect each other."
+    },
+    {
+      "section": "mechanism_interaction_alerts",
+      "title": "Mechanism & Interaction Alerts",
+      "intro": "This section explains why specific ingredients in this combo create risk when they are present together. Unlike the nutrient load above, these alerts are about biological mechanisms.",
+      "headline": {
+        "statement": "Two mechanism interactions flagged — one warning, one caution.",
+        "detail": "The warning is garlic exposure through the food. The caution is a mild anticoagulant stacking pattern across food and supplement."
+      },
+      "alert_cards": [
+        {
+          "primary_conflict_type": "hemolytic_risk",
+          "display_name": "Hemolytic Risk from Allium Ingredients",
+          "severity_badge": "warning",
+          "involved_summary": "Garlic powder in Blue Buffalo Senior",
+          "body": "Allium family ingredients like garlic, onion, and chives contain a compound (n-propyl disulfide) that damages red blood cells in dogs. The damaged cells form structures called Heinz bodies and are cleared by the spleen faster than the body can replace them, which can lead to anemia.",
+          "related_flags_note": "Garlic powder is specifically listed on the food label as a species-toxic ingredient, reinforcing this alert."
+        }
+      ],
+      "standalone_flags_summary": {
+        "present": true,
+        "cards": [
+          {
+            "ingredient": "Senior formula",
+            "flag_type": "life_stage_mismatch",
+            "severity_badge": "caution",
+            "body": "Separate from the mechanism alerts above, the food in this combo is formulated for senior dogs, while Buddy is still in his adult years. Senior formulas typically have reduced calorie density and adjusted mineral profiles."
+          }
+        ]
+      },
+      "closing": "This section explained why the flagged combinations matter mechanically. The next section turns to observation: over the coming days and weeks, what signs should you watch for in Buddy?"
+    },
+    {
+      "section": "observable_warning_signs",
+      "title": "Observable Warning Signs",
+      "intro": "Because pets cannot tell us when something feels off, your observations over the next few days are the most important safety check for this combo. Most pets will not show any of the signs below — but knowing what to watch for means you will catch anything early.",
+      "risk_sections": [
+        {
+          "risk_key": "d3_excess",
+          "display_name": "Vitamin D3 Excess",
+          "tier_badge": "monitor",
+          "species_note": null,
+          "body": "Over the next 3 days, pay attention to Buddy's drinking, urination, and energy level. The earliest signs of D3 excess show up as changes in water intake — the body tries to flush excess calcium, which makes pets thirstier than usual.",
+          "early_signs_header": "Early signs to watch for:",
+          "early_signs": [
+            "Drinking noticeably more water than usual",
+            "Urinating more often or having accidents indoors",
+            "Reduced appetite or leaving a favorite food",
+            "Lethargy, reluctance to walk, or sleeping more than usual"
+          ],
+          "escalate_signs_header": "Contact your vet immediately if you see:",
+          "escalate_signs": [
+            "Vomiting more than twice within 24 hours",
+            "Noticeable weight loss",
+            "Constipation or bloody stool",
+            "Muscle tremors or seizures",
+            "Rapid or shallow breathing"
+          ]
+        }
+      ],
+      "closing": "If Buddy shows none of these signs over the next 3 days, the risk can be considered resolved. The next section lays out what to do about the current combo."
+    },
+    {
+      "section": "action_plan_vet_escalation",
+      "title": "Action Plan",
+      "intro": "This section translates everything above into what to actually do. PetCut sorts recommendations into three tiers: urgent (contact your vet today), next vet visit (mention at routine appointment), and self-adjust (changes you can make at home).",
+      "triage_banner": {
+        "tier_emoji": "🟡",
+        "tier_display": "Mention at Next Vet Visit",
+        "statement": "This combo is worth bringing up at Buddy's next routine vet visit — not urgent, but worth a conversation."
+      },
+      "urgent_section": {
+        "present": false,
+        "heading": "Contact Your Vet Today",
+        "body": null,
+        "action_cards": []
+      },
+      "next_visit_section": {
+        "present": true,
+        "heading": "Mention at Next Vet Visit",
+        "body": "Two items land in this tier. The anticoagulant stacking pattern means multiple blood-thinning ingredients are active together, which is worth a conversation with your vet — especially before any dental work or surgery.",
+        "action_cards": [
+          {
+            "action_verb": "stop",
+            "target_product": "Zesty Paws 8-in-1 Multi",
+            "rationale": "The supplement contributes turmeric and vitamin E to the anticoagulant stack identified above. Ask your vet whether Buddy actually needs this supplement given what is already in his food."
+          }
+        ]
+      },
+      "self_adjust_section": {
+        "present": false,
+        "heading": "Safe to Adjust at Home",
+        "body": null,
+        "action_cards": []
+      },
+      "prescription_note": "If your pet is currently taking any prescription medication from a vet, please share this combo with them as well. Some supplements interact with common prescriptions.",
+      "closing": "You now have a clear picture of Buddy's current combo — what is in it, why certain combinations create risk, what to watch for, and what to do about it."
+    }
+  ]
+}

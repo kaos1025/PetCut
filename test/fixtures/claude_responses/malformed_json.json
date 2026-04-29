@@ -1,0 +1,10 @@
+{
+  "report_version": "v1",
+  "sections": [
+    {
+      "section": "pet_risk_profile",
+      "title": "Pet Risk Profile"
+      "pet_summary_line": "Missing comma above intentionally — JSON is malformed."
+    },
+    {
+      "section": "combo_load_report"

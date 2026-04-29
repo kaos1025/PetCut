@@ -1,0 +1,70 @@
+{
+  "report_version": "v1",
+  "sections": [
+    {
+      "section": "pet_risk_profile",
+      "title": "Pet Risk Profile",
+      "pet_summary_line": "Buddy — Adult Doberman Pinscher, 30 kg (66 lbs). 2 products analyzed.",
+      "body": "Body text intentionally short for fixture brevity.",
+      "sensitivity_notes": [],
+      "transition": "Next: nutrient breakdown."
+    },
+    {
+      "section": "combo_load_report",
+      "title": "Combo Load Report",
+      "intro": "Intro.",
+      "headline": {
+        "statement": "Statement.",
+        "detail": "Detail."
+      },
+      "nutrient_cards": [],
+      "safe_nutrients_summary": "Summary.",
+      "closing": "Closing."
+    },
+    {
+      "section": "pet_risk_profile",
+      "title": "Duplicate of section 1 — section 3 is intentionally missing here so ClaudeReportResponse.fromJson rejects this payload.",
+      "pet_summary_line": "Duplicate.",
+      "body": "Duplicate.",
+      "sensitivity_notes": [],
+      "transition": "Duplicate."
+    },
+    {
+      "section": "observable_warning_signs",
+      "title": "Observable Warning Signs",
+      "intro": "Intro.",
+      "risk_sections": [],
+      "closing": "Closing."
+    },
+    {
+      "section": "action_plan_vet_escalation",
+      "title": "Action Plan",
+      "intro": "Intro.",
+      "triage_banner": {
+        "tier_emoji": "🟢",
+        "tier_display": "Safe to Adjust at Home",
+        "statement": "Safe."
+      },
+      "urgent_section": {
+        "present": false,
+        "heading": "Contact Your Vet Today",
+        "body": null,
+        "action_cards": []
+      },
+      "next_visit_section": {
+        "present": false,
+        "heading": "Mention at Next Vet Visit",
+        "body": null,
+        "action_cards": []
+      },
+      "self_adjust_section": {
+        "present": false,
+        "heading": "Safe to Adjust at Home",
+        "body": null,
+        "action_cards": []
+      },
+      "prescription_note": null,
+      "closing": "Closing."
+    }
+  ]
+}
