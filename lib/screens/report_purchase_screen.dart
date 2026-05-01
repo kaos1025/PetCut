@@ -30,7 +30,7 @@ import '../services/iap_entitlement_service.dart';
 import '../services/report_purchase_orchestrator.dart';
 import '../theme/petcut_tokens.dart';
 import '../widgets/refund_policy_disclaimer.dart';
-import 'report_failure_screen.dart';
+import 'report_generating_screen.dart';
 
 class ReportPurchaseScreen extends StatefulWidget {
   final PetProfile petProfile;
@@ -243,72 +243,41 @@ class _ReportPurchaseScreenState extends State<ReportPurchaseScreen> {
     );
   }
 
-  Future<void> _onPrimaryTap() async {
+  void _onPrimaryTap() {
     setState(() => _processing = true);
 
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
+    // Capture orchestration args at tap time so the closure stays valid
+    // after this screen is replaced (V1 lock-in: pushReplacement).
+    final orchestrator = getIt<ReportPurchaseOrchestrator>();
+    final hasToken = _activeToken != null;
+    final productDetails = _productDetails;
 
-    ReportPurchaseResult result;
-    try {
-      if (_activeToken != null) {
-        result = await getIt<ReportPurchaseOrchestrator>().retryWithFreeToken(
-          geminiResult: widget.analysisResult,
-          pet: widget.petProfile,
-          scanId: widget.scanId,
-        );
-      } else {
-        result = await getIt<ReportPurchaseOrchestrator>().purchaseAndAnalyze(
-          productDetails: _productDetails!,
+    Future<ReportPurchaseResult> runOrchestration() {
+      if (hasToken) {
+        return orchestrator.retryWithFreeToken(
           geminiResult: widget.analysisResult,
           pet: widget.petProfile,
           scanId: widget.scanId,
         );
       }
-    } catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
-      setState(() => _processing = false);
-      return;
+      return orchestrator.purchaseAndAnalyze(
+        productDetails: productDetails!,
+        geminiResult: widget.analysisResult,
+        pet: widget.petProfile,
+        scanId: widget.scanId,
+      );
     }
 
-    if (!mounted) return;
-
-    switch (result) {
-      case ReportPurchaseSuccess():
-        navigator.push(
-          MaterialPageRoute<void>(
-            builder: (_) => const _PaidReportPlaceholder(),
-          ),
-        );
-      case ReportPurchaseFreeRetryGranted():
-        navigator.push(
-          MaterialPageRoute<void>(
-            builder: (_) => ReportFailureScreen(
-              petProfile: widget.petProfile,
-              analysisResult: widget.analysisResult,
-              scanId: widget.scanId,
-            ),
-          ),
-        );
-      case PurchaseCanceledByUser():
-        // Silent dismiss — user cancelled the Play sheet.
-        break;
-      case PaymentError(:final details):
-        messenger.showSnackBar(SnackBar(content: Text(details)));
-      case ClaudeApiError(:final message):
-        messenger.showSnackBar(
-          SnackBar(content: Text('Report unavailable: $message')),
-        );
-      case UnknownError():
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Something went wrong.')),
-        );
-    }
-
-    if (mounted) {
-      setState(() => _processing = false);
-    }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => ReportGeneratingScreen(
+          runOrchestration: runOrchestration,
+          petProfile: widget.petProfile,
+          analysisResult: widget.analysisResult,
+          scanId: widget.scanId,
+        ),
+      ),
+    );
   }
 }
 
@@ -338,31 +307,3 @@ class _IncludeRow extends StatelessWidget {
   }
 }
 
-/// Inline placeholder to be replaced by `PaidReportScreen` in Chunk 7b.
-class _PaidReportPlaceholder extends StatelessWidget {
-  const _PaidReportPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: PcColors.surface,
-      appBar: AppBar(
-        backgroundColor: PcColors.surface,
-        elevation: 0,
-        foregroundColor: PcColors.ink,
-        title: const Text('Detailed Report', style: PcText.h2),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(PcSpace.xl),
-          child: Text(
-            'Detailed report ready. (Chunk 7b will render the full report here.)',
-            style: PcText.body,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
-  }
-}

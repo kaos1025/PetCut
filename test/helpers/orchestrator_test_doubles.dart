@@ -7,7 +7,13 @@
 // hand-rolled fakes (rather than mocktail mocks for every test) keeps the
 // widget-test setup small and avoids forcing every screen test to
 // registerFallbackValue for the full IAP type surface.
+//
+// Chunk 7b extension: `pendingPurchaseCompleter` lets a test pin
+// ReportGeneratingScreen mid-flow without racing the auto-pop that
+// happens when an orchestrator default returns immediately.
 // ----------------------------------------------------------------------------
+
+import 'dart:async';
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:petcut/models/entitlement_token.dart';
@@ -22,6 +28,12 @@ class FakeOrchestrator implements ReportPurchaseOrchestrator {
   ReportPurchaseResult Function()? onPurchaseAndAnalyze;
   ReportPurchaseResult Function()? onRetryWithFreeToken;
 
+  /// When non-null, `purchaseAndAnalyze` returns this completer's future
+  /// instead of resolving via `onPurchaseAndAnalyze`. Tests use it to hold
+  /// `ReportGeneratingScreen` on the loading state long enough to assert
+  /// against.
+  Completer<ReportPurchaseResult>? pendingPurchaseCompleter;
+
   int purchaseAndAnalyzeCalls = 0;
   int retryWithFreeTokenCalls = 0;
 
@@ -31,10 +43,14 @@ class FakeOrchestrator implements ReportPurchaseOrchestrator {
     required PetcutAnalysisResult geminiResult,
     required PetProfile pet,
     required String scanId,
-  }) async {
+  }) {
     purchaseAndAnalyzeCalls += 1;
-    return onPurchaseAndAnalyze?.call() ??
-        const PurchaseCanceledByUser();
+    if (pendingPurchaseCompleter != null) {
+      return pendingPurchaseCompleter!.future;
+    }
+    return Future.value(
+      onPurchaseAndAnalyze?.call() ?? const PurchaseCanceledByUser(),
+    );
   }
 
   @override

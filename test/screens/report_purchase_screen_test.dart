@@ -20,6 +20,10 @@ import 'package:petcut/core/service_locator.dart';
 import 'package:petcut/models/entitlement_token.dart';
 import 'package:petcut/models/pet_profile.dart';
 import 'package:petcut/models/petcut_analysis_result.dart';
+import 'dart:async';
+
+import 'package:petcut/models/report_purchase_result.dart';
+import 'package:petcut/screens/report_generating_screen.dart';
 import 'package:petcut/screens/report_purchase_screen.dart';
 import 'package:petcut/services/iap_billing_service.dart';
 import 'package:petcut/services/iap_entitlement_service.dart';
@@ -141,6 +145,16 @@ void main() {
       (tester) async {
     billing.onQueryProductDetails = () => _withProduct(r'$1.99');
     entitlement.activeToken = null;
+    // Hold the orchestrator future open. Without this, GeneratingScreen
+    // would receive a synthetic PurchaseCanceledByUser, call
+    // navigator.pop, and crash the test's single-route navigator
+    // (_history.isNotEmpty assertion).
+    orchestrator.pendingPurchaseCompleter =
+        Completer<ReportPurchaseResult>();
+    addTearDown(() {
+      orchestrator.pendingPurchaseCompleter
+          ?.complete(const PurchaseCanceledByUser());
+    });
 
     await tester.pumpWidget(
       MaterialApp(
@@ -156,9 +170,58 @@ void main() {
     expect(orchestrator.purchaseAndAnalyzeCalls, 0);
 
     await tester.tap(find.text('Get Detailed Report'));
-    await tester.pumpAndSettle();
+    // Multiple discrete pumps for the Material page transition (~300ms);
+    // pumpAndSettle would hang on the indefinite CircularProgressIndicator.
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
 
     expect(orchestrator.purchaseAndAnalyzeCalls, 1);
     expect(orchestrator.retryWithFreeTokenCalls, 0);
   });
+
+  testWidgets(
+    'CTA tap pushReplaces to ReportGeneratingScreen (V1 lock-in)',
+    (tester) async {
+      billing.onQueryProductDetails = () => _withProduct(r'$1.99');
+      entitlement.activeToken = null;
+      // Hold the orchestrator future open so ReportGeneratingScreen
+      // stays on the loading state long enough to assert against.
+      orchestrator.pendingPurchaseCompleter =
+          Completer<ReportPurchaseResult>();
+      addTearDown(() {
+        orchestrator.pendingPurchaseCompleter
+            ?.complete(const PurchaseCanceledByUser());
+      });
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReportPurchaseScreen(
+            petProfile: _pet(),
+            analysisResult: _gemini(),
+            scanId: 'scan_X',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Sanity: PurchaseScreen is the active route.
+      expect(find.byType(ReportPurchaseScreen), findsOneWidget);
+      expect(find.byType(ReportGeneratingScreen), findsNothing);
+
+      await tester.tap(find.text('Get Detailed Report'));
+      // Multiple discrete pumps so the Material page transition (~300ms)
+      // can advance frame-by-frame; pumpAndSettle would hang on the
+      // indefinite CircularProgressIndicator that GeneratingScreen renders.
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+
+      // pushReplacement landed: GeneratingScreen is on top, the orchestrator
+      // was reached (indirect proof that pushReplacement and the postFrame
+      // callback both fired).
+      expect(find.byType(ReportGeneratingScreen), findsOneWidget);
+      expect(orchestrator.purchaseAndAnalyzeCalls, 1);
+    },
+  );
 }
