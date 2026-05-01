@@ -13,49 +13,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:petcut/models/claude_report_response.dart';
 import 'package:petcut/models/report_purchase_result.dart';
 
-ClaudeReportResponse _stubReport() {
-  // Build a minimal ClaudeReportResponse via its public constructor.
-  // The model is strict at fromJson but the constructor accepts any
-  // section instances; we use the v1 constants and minimal sections.
-  return const ClaudeReportResponse(
-    reportVersion: ClaudeReportResponse.currentVersion,
-    section1: _StubSection1(),
-    section2: _StubSection2(),
-    section3: _StubSection3(),
-    section4: _StubSection4(),
-    section5: _StubSection5(),
-  );
-}
+import '../helpers/load_claude_fixture.dart';
 
-class _StubSection1 implements Section1Output {
-  const _StubSection1();
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _StubSection2 implements Section2Output {
-  const _StubSection2();
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _StubSection3 implements Section3Output {
-  const _StubSection3();
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _StubSection4 implements Section4Output {
-  const _StubSection4();
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
-
-class _StubSection5 implements Section5Output {
-  const _StubSection5();
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}
+/// Returns a real `ClaudeReportResponse` parsed from the canonical
+/// success fixture. Sprint 2 Chunk 5 followup: replaces the prior
+/// `noSuchMethod`-based section stubs with the shared fixture loader so
+/// schema regressions surface here too.
+ClaudeReportResponse _stubReport() => loadClaudeFixture('success_full');
 
 void main() {
   group('ReportPurchaseResult subtype construction', () {

@@ -53,6 +53,32 @@ class ScanHistoryService {
     await prefs.remove(_key);
   }
 
+  /// Flips [ScanHistoryEntry.isPaidReport] to true for the entry whose id
+  /// equals [scanId]. Idempotent and best-effort — if the entry is not
+  /// found (e.g. user paid for the report before saving the scan to
+  /// history), the call is a no-op rather than an error.
+  ///
+  /// Sprint 2 Chunk 5: invoked by `ReportPurchaseOrchestrator` on the
+  /// Pattern D consume branch, after the Claude detailed report has
+  /// been generated.
+  Future<void> markAsPaid(String scanId) async {
+    final entries = await getAll();
+    final idx = entries.indexWhere((e) => e.id == scanId);
+    if (idx == -1) return;
+    final original = entries[idx];
+    entries[idx] = ScanHistoryEntry(
+      id: original.id,
+      scannedAt: original.scannedAt,
+      productNames: original.productNames,
+      overallStatus: original.overallStatus,
+      conflictCount: original.conflictCount,
+      cautionCount: original.cautionCount,
+      petId: original.petId,
+      isPaidReport: true,
+    );
+    await _persist(entries);
+  }
+
   /// 최신순 상위 [limit]개 반환 (홈 화면은 3).
   Future<List<ScanHistoryEntry>> getRecent(int limit) async {
     if (limit <= 0) return const [];
