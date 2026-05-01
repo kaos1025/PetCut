@@ -1,0 +1,14 @@
+{
+  "_doc": "PetCut Sprint 2 — Pattern D fixture: PurchaseStatus.canceled. User dismissed the Play sheet (back gesture or 'Cancel'). No charge occurred; no consume() call is needed. Orchestrator routes to PurchaseCanceledByUser.",
+  "purchaseID": null,
+  "productID": "petcut_report_standard_v1",
+  "transactionDate": null,
+  "status": "canceled",
+  "pendingCompletePurchase": false,
+  "verificationData": {
+    "source": "google_play",
+    "localVerificationData": "",
+    "serverVerificationData": ""
+  },
+  "error": null
+}

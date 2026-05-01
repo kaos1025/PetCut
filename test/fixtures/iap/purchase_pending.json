@@ -1,0 +1,14 @@
+{
+  "_doc": "PetCut Sprint 2 — Pattern D fixture: PurchaseStatus.pending. User has initiated payment but Google Play has not yet finalized (e.g. slow card issuer, device offline). The orchestrator must keep the UI in 'purchasing' and wait for the next stream event.",
+  "purchaseID": null,
+  "productID": "petcut_report_standard_v1",
+  "transactionDate": null,
+  "status": "pending",
+  "pendingCompletePurchase": false,
+  "verificationData": {
+    "source": "google_play",
+    "localVerificationData": "",
+    "serverVerificationData": ""
+  },
+  "error": null
+}

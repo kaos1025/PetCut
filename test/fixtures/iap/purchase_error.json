@@ -1,0 +1,19 @@
+{
+  "_doc": "PetCut Sprint 2 — Pattern D fixture: PurchaseStatus.error. Play Billing failed before reaching 'awaiting Claude' (network, store unavailable, item unavailable, signature verification failure). Orchestrator routes to PaymentError. consume() is NOT called.",
+  "purchaseID": null,
+  "productID": "petcut_report_standard_v1",
+  "transactionDate": null,
+  "status": "error",
+  "pendingCompletePurchase": false,
+  "verificationData": {
+    "source": "google_play",
+    "localVerificationData": "",
+    "serverVerificationData": ""
+  },
+  "error": {
+    "source": "google_play",
+    "code": "BillingResponse.serviceUnavailable",
+    "message": "Unable to connect to the billing service",
+    "details": null
+  }
+}
