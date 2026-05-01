@@ -445,6 +445,67 @@ void main() {
     );
   });
 
+  group('scanId optional (Sprint 2 Chunk 8)', () {
+    test(
+      'purchaseAndAnalyze with scanId=null skips markAsPaid on success',
+      () async {
+        when(() => billing.buyConsumable(any())).thenAnswer((_) async {
+          Future<void>.microtask(() {
+            streamController
+                .add([_purchase(status: PurchaseStatus.purchased)]);
+          });
+          return true;
+        });
+        when(() => claude.generateReport(
+              geminiResult: any(named: 'geminiResult'),
+              pet: any(named: 'pet'),
+            )).thenAnswer(
+          (_) async => loadClaudeFixture('success_full'),
+        );
+
+        final result = await orchestrator.purchaseAndAnalyze(
+          productDetails: product,
+          geminiResult: gemini,
+          pet: pet,
+          // scanId omitted (null) — caller has no saved scan to flip.
+        );
+
+        expect(result, isA<ReportPurchaseSuccess>());
+        // consume still fires (Pattern D success path), markAsPaid does not.
+        verify(() => billing.consume(any())).called(1);
+        verifyNever(() => history.markAsPaid(any()));
+      },
+    );
+
+    test(
+      'retryWithFreeToken with scanId=null skips markAsPaid on success',
+      () async {
+        when(() => entitlement.getActiveToken()).thenAnswer(
+          (_) async => EntitlementToken(
+            purchaseToken: _kPurchaseToken,
+            productId: _kProductId,
+            grantedAt: DateTime.utc(2026, 5, 1),
+          ),
+        );
+        when(() => claude.generateReport(
+              geminiResult: any(named: 'geminiResult'),
+              pet: any(named: 'pet'),
+            )).thenAnswer((_) async => loadClaudeFixture('success_full'));
+
+        final result = await orchestrator.retryWithFreeToken(
+          geminiResult: gemini,
+          pet: pet,
+          // scanId omitted (null).
+        );
+
+        expect(result, isA<ReportPurchaseSuccess>());
+        // entitlement still consumed (free retry resolved), markAsPaid skipped.
+        verify(() => entitlement.consumeToken()).called(1);
+        verifyNever(() => history.markAsPaid(any()));
+      },
+    );
+  });
+
   group('recoverPendingPurchases (Sprint 2 Chunk 6.5)', () {
     const fastDrain = Duration(milliseconds: 50);
 

@@ -6,6 +6,7 @@ import '../models/petcut_analysis_result.dart';
 import '../models/scan_history_entry.dart';
 import '../services/scan_history_service.dart';
 import '../theme/petcut_tokens.dart';
+import 'report_purchase_screen.dart';
 
 /// Gemini 분석 결과 표시 화면
 class AnalysisResultScreen extends StatefulWidget {
@@ -97,6 +98,10 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
                     .map(_buildExclusionCard),
                 const SizedBox(height: 16),
               ],
+
+              // 6.5 Paid Detailed Report CTA (Sprint 2 Chunk 8)
+              _buildPaidReportCta(),
+              const SizedBox(height: 16),
 
               // 7. Disclaimer
               const SizedBox(height: 8),
@@ -254,6 +259,63 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // === Paid report CTA (Sprint 2 Chunk 8) ===================================
+
+  Widget _buildPaidReportCta() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 56,
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: PcColors.ink,
+              foregroundColor: PcColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(PcRadius.md),
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: PcSpace.lg,
+                vertical: PcSpace.lg,
+              ),
+            ),
+            onPressed: _onPaidReportCtaTap,
+            child: const Text('Get Detailed Report', style: PcText.h2),
+          ),
+        ),
+        const SizedBox(height: PcSpace.sm),
+        Text(
+          'Premium analysis · See more details',
+          style: PcText.caption.copyWith(color: PcColors.textSec),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _onPaidReportCtaTap() async {
+    final navigator = Navigator.of(context);
+
+    // Auto-save the scan idempotently so the orchestrator can flip
+    // ScanHistoryEntry.isPaidReport against a stable id. If the user
+    // already tapped "Save scan" we keep the existing _scanId and skip
+    // the duplicate add.
+    if (!_isSaved) {
+      await _saveScan(showSnackbar: false);
+    }
+    if (!mounted) return;
+
+    navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => ReportPurchaseScreen(
+          petProfile: widget.petProfile,
+          analysisResult: widget.result,
+          scanId: _scanId,
+        ),
       ),
     );
   }

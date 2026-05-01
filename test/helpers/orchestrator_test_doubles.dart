@@ -42,7 +42,7 @@ class FakeOrchestrator implements ReportPurchaseOrchestrator {
     required ProductDetails productDetails,
     required PetcutAnalysisResult geminiResult,
     required PetProfile pet,
-    required String scanId,
+    String? scanId,
   }) {
     purchaseAndAnalyzeCalls += 1;
     if (pendingPurchaseCompleter != null) {
@@ -57,7 +57,7 @@ class FakeOrchestrator implements ReportPurchaseOrchestrator {
   Future<ReportPurchaseResult> retryWithFreeToken({
     required PetcutAnalysisResult geminiResult,
     required PetProfile pet,
-    required String scanId,
+    String? scanId,
   }) async {
     retryWithFreeTokenCalls += 1;
     return onRetryWithFreeToken?.call() ??

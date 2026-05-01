@@ -66,11 +66,18 @@ class ReportPurchaseOrchestrator {
 
   /// Full happy-path: open Play Billing, await purchase, run Claude,
   /// consume on success / grant free retry on Claude failure.
+  ///
+  /// [scanId] is optional: callers that have a saved
+  /// `ScanHistoryEntry` pass its id so the consume branch can flip
+  /// `isPaidReport` to true. If the user paid before saving the scan
+  /// (or the call site simply does not have a scanId), pass null and
+  /// the markAsPaid step is skipped — the report itself is still
+  /// generated and returned.
   Future<ReportPurchaseResult> purchaseAndAnalyze({
     required ProductDetails productDetails,
     required PetcutAnalysisResult geminiResult,
     required PetProfile pet,
-    required String scanId,
+    String? scanId,
   }) async {
     _state = PurchaseState.purchasing;
 
@@ -134,7 +141,7 @@ class ReportPurchaseOrchestrator {
     required PurchaseDetails purchase,
     required PetcutAnalysisResult geminiResult,
     required PetProfile pet,
-    required String scanId,
+    required String? scanId,
   }) async {
     try {
       final report = await _claude.generateReport(
@@ -143,7 +150,9 @@ class ReportPurchaseOrchestrator {
       );
 
       // ★ Pattern D consume gate: only Claude success reaches consume().
-      await _scanHistory.markAsPaid(scanId);
+      if (scanId != null) {
+        await _scanHistory.markAsPaid(scanId);
+      }
       await _billing.consume(purchase);
       _state = PurchaseState.consumed;
 
@@ -238,7 +247,7 @@ class ReportPurchaseOrchestrator {
   Future<ReportPurchaseResult> retryWithFreeToken({
     required PetcutAnalysisResult geminiResult,
     required PetProfile pet,
-    required String scanId,
+    String? scanId,
   }) async {
     final token = await _entitlement.getActiveToken();
     if (token == null) {
@@ -255,7 +264,9 @@ class ReportPurchaseOrchestrator {
         pet: pet,
       );
 
-      await _scanHistory.markAsPaid(scanId);
+      if (scanId != null) {
+        await _scanHistory.markAsPaid(scanId);
+      }
       await _entitlement.consumeToken();
       _state = PurchaseState.consumed;
 
