@@ -11,6 +11,11 @@ class ScanHistoryEntry {
   final int cautionCount;
   final String petId;
 
+  /// Whether the user has unlocked the paid Claude detailed report for this
+  /// scan. Defaults to false so legacy `scan_history_v1` entries hydrate
+  /// without migration.
+  final bool isPaidReport;
+
   const ScanHistoryEntry({
     required this.id,
     required this.scannedAt,
@@ -19,6 +24,7 @@ class ScanHistoryEntry {
     required this.conflictCount,
     required this.cautionCount,
     required this.petId,
+    this.isPaidReport = false,
   });
 
   factory ScanHistoryEntry.fromJson(Map<String, dynamic> json) {
@@ -32,6 +38,7 @@ class ScanHistoryEntry {
       conflictCount: (json['conflictCount'] as num?)?.toInt() ?? 0,
       cautionCount: (json['cautionCount'] as num?)?.toInt() ?? 0,
       petId: json['petId'] as String? ?? '',
+      isPaidReport: json['isPaidReport'] as bool? ?? false,
     );
   }
 
@@ -43,5 +50,6 @@ class ScanHistoryEntry {
         'conflictCount': conflictCount,
         'cautionCount': cautionCount,
         'petId': petId,
+        'isPaidReport': isPaidReport,
       };
 }
