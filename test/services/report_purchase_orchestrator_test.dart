@@ -65,6 +65,8 @@ PurchaseDetails _purchase({
   required PurchaseStatus status,
   String? id,
   IAPError? error,
+  bool pendingCompletePurchase = false,
+  String transactionDate = '1714521600000',
 }) {
   return PurchaseDetails(
     purchaseID: id ?? _kPurchaseToken,
@@ -74,9 +76,11 @@ PurchaseDetails _purchase({
       serverVerificationData: 'server',
       source: 'google_play',
     ),
-    transactionDate: '1714521600000',
+    transactionDate: transactionDate,
     status: status,
-  )..error = error;
+  )
+    ..error = error
+    ..pendingCompletePurchase = pendingCompletePurchase;
 }
 
 void main() {
@@ -437,6 +441,157 @@ void main() {
         expect(orchestrator.state, PurchaseState.claudeFailedPendingRefund);
         verifyNever(() => entitlement.consumeToken());
         verifyNever(() => history.markAsPaid(any()));
+      },
+    );
+  });
+
+  group('recoverPendingPurchases (Sprint 2 Chunk 6.5)', () {
+    const fastDrain = Duration(milliseconds: 50);
+
+    setUp(() {
+      when(() => billing.restorePurchases()).thenAnswer((_) async {});
+    });
+
+    test('no pending purchases → no grant, no consume', () async {
+      when(() => entitlement.getActiveToken()).thenAnswer((_) async => null);
+      // Stream emits nothing during the drain window.
+
+      await orchestrator.recoverPendingPurchases(drainTimeout: fastDrain);
+
+      verify(() => billing.restorePurchases()).called(1);
+      verifyNever(() => entitlement.grantFreeRetry(
+            purchaseToken: any(named: 'purchaseToken'),
+            productId: any(named: 'productId'),
+          ));
+      verifyNever(() => billing.consume(any()));
+    });
+
+    test(
+      'pending purchase + no active token → grants a free retry',
+      () async {
+        when(() => entitlement.getActiveToken())
+            .thenAnswer((_) async => null);
+        when(() => billing.restorePurchases()).thenAnswer((_) async {
+          Future<void>.microtask(() {
+            streamController.add([
+              _purchase(
+                status: PurchaseStatus.purchased,
+                id: 'GPA.pending-token',
+                pendingCompletePurchase: true,
+              ),
+            ]);
+          });
+        });
+
+        await orchestrator.recoverPendingPurchases(
+          drainTimeout: fastDrain,
+        );
+
+        verify(() => entitlement.grantFreeRetry(
+              purchaseToken: 'GPA.pending-token',
+              productId: _kProductId,
+            )).called(1);
+      },
+    );
+
+    test(
+      'pending purchase + active token → idempotent no-op',
+      () async {
+        when(() => entitlement.getActiveToken()).thenAnswer(
+          (_) async => EntitlementToken(
+            purchaseToken: 'existing-token',
+            productId: _kProductId,
+            grantedAt: DateTime.utc(2026, 5, 1),
+          ),
+        );
+        when(() => billing.restorePurchases()).thenAnswer((_) async {
+          Future<void>.microtask(() {
+            streamController.add([
+              _purchase(
+                status: PurchaseStatus.purchased,
+                pendingCompletePurchase: true,
+              ),
+            ]);
+          });
+        });
+
+        await orchestrator.recoverPendingPurchases(
+          drainTimeout: fastDrain,
+        );
+
+        verifyNever(() => entitlement.grantFreeRetry(
+              purchaseToken: any(named: 'purchaseToken'),
+              productId: any(named: 'productId'),
+            ));
+      },
+    );
+
+    test(
+      '★ Pattern D: recovery never triggers consume regardless of branch',
+      () async {
+        when(() => entitlement.getActiveToken())
+            .thenAnswer((_) async => null);
+        when(() => billing.restorePurchases()).thenAnswer((_) async {
+          Future<void>.microtask(() {
+            streamController.add([
+              _purchase(
+                status: PurchaseStatus.restored,
+                id: 'GPA.restored',
+                pendingCompletePurchase: true,
+              ),
+            ]);
+          });
+        });
+
+        await orchestrator.recoverPendingPurchases(
+          drainTimeout: fastDrain,
+        );
+
+        // The load-bearing assertion for the recovery path: even with
+        // a pendingCompletePurchase=true event flowing through the
+        // stream, the orchestrator must not consume it. The user is
+        // simply offered a free retry instead.
+        verifyNever(() => billing.consume(any()));
+      },
+    );
+
+    test(
+      'multiple pending → grants for the most recent transactionDate only',
+      () async {
+        when(() => entitlement.getActiveToken())
+            .thenAnswer((_) async => null);
+        when(() => billing.restorePurchases()).thenAnswer((_) async {
+          Future<void>.microtask(() {
+            streamController.add([
+              _purchase(
+                status: PurchaseStatus.purchased,
+                id: 'GPA.older',
+                pendingCompletePurchase: true,
+                transactionDate: '1700000000000',
+              ),
+              _purchase(
+                status: PurchaseStatus.purchased,
+                id: 'GPA.newer',
+                pendingCompletePurchase: true,
+                transactionDate: '1714521600000',
+              ),
+            ]);
+          });
+        });
+
+        await orchestrator.recoverPendingPurchases(
+          drainTimeout: fastDrain,
+        );
+
+        // Exactly one grant; pinned to the newer transaction date.
+        verify(() => entitlement.grantFreeRetry(
+              purchaseToken: 'GPA.newer',
+              productId: _kProductId,
+            )).called(1);
+        verifyNever(() => entitlement.grantFreeRetry(
+              purchaseToken: 'GPA.older',
+              productId: any(named: 'productId'),
+            ));
       },
     );
   });

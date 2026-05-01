@@ -72,4 +72,23 @@ class IapBillingService {
   Future<void> consume(PurchaseDetails purchase) {
     return _iap.completePurchase(purchase);
   }
+
+  /// Asks Play Billing to replay any unconsumed purchases through
+  /// [purchaseStream].
+  ///
+  /// Sprint 2 Chunk 6.5 — supports cross-session Pattern D-1 recovery:
+  /// if the previous session terminated mid-flow (process kill, app
+  /// crash) the purchase still exists, unconsumed, on the user's
+  /// account. Calling this on app start gives the orchestrator a
+  /// chance to grant a free-retry token before the user can interact.
+  ///
+  /// ★ Pattern D invariant unchanged: restored purchases arrive in
+  /// the stream with `PurchaseStatus.restored` and remain
+  /// **unconsumed** until [consume] is explicitly called. The service
+  /// never subscribes to its own stream, so there is no path by which
+  /// a restored purchased event can trigger an automatic
+  /// `completePurchase`.
+  Future<void> restorePurchases() {
+    return _iap.restorePurchases();
+  }
 }

@@ -363,4 +363,67 @@ void main() {
           'Unable to connect to the billing service');
     });
   });
+
+  group('restorePurchases (Sprint 2 Chunk 6.5)', () {
+    test('delegates to InAppPurchase.restorePurchases', () async {
+      when(() => mockIap.restorePurchases())
+          .thenAnswer((_) async {});
+
+      await service.restorePurchases();
+
+      verify(() => mockIap.restorePurchases()).called(1);
+    });
+
+    test(
+      '★ Pattern D: a "restored" event does NOT trigger completePurchase',
+      () async {
+        // The same invariant proven for "purchased" events also holds
+        // for "restored": the service has no internal subscriber, so
+        // replaying an unconsumed purchase from a prior session cannot
+        // implicitly call completePurchase.
+        final controller =
+            StreamController<List<PurchaseDetails>>.broadcast();
+        addTearDown(controller.close);
+        when(() => mockIap.purchaseStream)
+            .thenAnswer((_) => controller.stream);
+        when(() => mockIap.restorePurchases())
+            .thenAnswer((_) async {});
+        when(() => mockIap.completePurchase(any()))
+            .thenAnswer((_) async {});
+
+        // Touch the getter as an external listener would.
+        final stream = service.purchaseStream;
+        expect(stream, isNotNull);
+
+        await service.restorePurchases();
+
+        // Simulate the platform replaying a previously unconsumed
+        // purchase as `restored`.
+        final restored = PurchaseDetails(
+          purchaseID: 'GPA.restored-token',
+          productID: petcutReportStandardV1,
+          verificationData: PurchaseVerificationData(
+            localVerificationData: 'local',
+            serverVerificationData: 'server',
+            source: 'google_play',
+          ),
+          transactionDate: '1714000000000',
+          status: PurchaseStatus.restored,
+        )..pendingCompletePurchase = true;
+        controller.add([restored]);
+
+        await Future<void>.delayed(Duration.zero);
+
+        verifyNever(() => mockIap.completePurchase(any()));
+      },
+    );
+
+    test('completes gracefully when the platform replays nothing',
+        () async {
+      when(() => mockIap.restorePurchases()).thenAnswer((_) async {});
+
+      // Method is Future<void>; success is "did not throw".
+      await expectLater(service.restorePurchases(), completes);
+    });
+  });
 }

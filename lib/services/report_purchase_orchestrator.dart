@@ -164,6 +164,71 @@ class ReportPurchaseOrchestrator {
     }
   }
 
+  /// App-start recovery hook (Pattern D-1 cross-session resume).
+  ///
+  /// Replays any unconsumed purchases from the platform via
+  /// `restorePurchases`, then — if no entitlement token is already
+  /// active — grants a free-retry receipt for the most recent
+  /// pending purchase. The intended call site is `main.dart`, fired
+  /// and forgotten right after `setupServiceLocator()`.
+  ///
+  /// Policy (R1.2 lock-in):
+  ///   * 0 unconsumed purchases  → no-op
+  ///   * 1+ unconsumed + no token → grantFreeRetry on the latest
+  ///   * 1+ unconsumed + token   → idempotent no-op (token wins)
+  ///
+  /// ★ Pattern D invariant preserved: this method NEVER calls
+  /// `_billing.consume`. Restored purchases stay unconsumed; granting
+  /// a free retry shifts the user back into the same Pattern D-1
+  /// state the previous session ended in.
+  ///
+  /// [drainTimeout] is the window we hold the platform stream open
+  /// after `restorePurchases` returns. The platform replays events
+  /// asynchronously; the default 500 ms is conservative for tests
+  /// to override with a shorter window.
+  Future<void> recoverPendingPurchases({
+    Duration drainTimeout = const Duration(milliseconds: 500),
+  }) async {
+    final pending = <PurchaseDetails>[];
+    final sub = _billing.purchaseStream.listen((events) {
+      for (final p in events) {
+        if (!p.pendingCompletePurchase) continue;
+        if (p.status != PurchaseStatus.purchased &&
+            p.status != PurchaseStatus.restored) {
+          continue;
+        }
+        pending.add(p);
+      }
+    });
+
+    try {
+      await _billing.restorePurchases();
+      await Future<void>.delayed(drainTimeout);
+    } finally {
+      await sub.cancel();
+    }
+
+    // Idempotency: if a token is already active, the previous session
+    // already recovered (or the user is mid-retry). Don't overwrite it.
+    final existing = await _entitlement.getActiveToken();
+    if (existing != null) return;
+
+    if (pending.isEmpty) return;
+
+    // Process most recent only — the entitlement service holds at most
+    // one token per E2 single-key policy.
+    pending.sort((a, b) {
+      final ta = int.tryParse(a.transactionDate ?? '0') ?? 0;
+      final tb = int.tryParse(b.transactionDate ?? '0') ?? 0;
+      return tb.compareTo(ta);
+    });
+    final latest = pending.first;
+    await _entitlement.grantFreeRetry(
+      purchaseToken: latest.purchaseID ?? '',
+      productId: latest.productID,
+    );
+  }
+
   /// Free-retry path: regenerates the Claude report using an existing
   /// entitlement receipt. No Play Billing buy is initiated and no
   /// `IapBillingService.consume` is called — the original purchase was
